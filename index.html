@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estud-IA - Encuentra el mejor precio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">Estud-IA</div>
+  <nav>
+    <a href="#" onclick="irA('tendencias'); return false;">Catálogo</a>
+    <a href="#" onclick="irA('ofertas'); return false;">Ofertas</a>
+    <a href="#" onclick="alertas(); return false;">Alertas de Precio (4)</a>
+    <a href="#" onclick="asistente(); return false;">Asistente IA (chat)</a>
+  </nav>
+  <div class="panel-admin" onclick="panelAdmin()" style="cursor:pointer;">Panel Admín</div>
+  <div class="spacer"></div>
+  <button class="btn-login" onclick="abrirModal()">Iniciar Sesión / Registro</button>
+</header>
+
+<div class="alerta">¡Últimos avisos: ofertas flash en Minecraft y Poppy Playtime 1 solo por hoy!</div>
+
+<div class="hero">
+  <h1>¡Encuentra el mejor precio<br>para tu próximo juego!</h1>
+  <input type="text" id="buscador" placeholder="Introduce tu búsqueda..." oninput="filtrar()">
+  <p>Buscar un juego por...</p>
+</div>
+
+<section id="secOfertas">
+  <h2>Súper Ofertas del Día (30% de descuento)</h2>
+  <div class="row" id="ofertas"></div>
+</section>
+
+<section id="secTendencias">
+  <h2>Los más Buscados (Tendencias)</h2>
+  <div class="grid" id="tendencias"></div>
+</section>
+
+<div class="whatsapp" onclick="abrirWhatsApp()"><img src="https://png.pngtree.com/png-clipart/20181003/ourmid/pngtree-whatsapp-social-media-icon-design-template-vector-whatsapp-logo-png-image_3654780.png" alt="WhatsApp"></div>
+<div class="asistente" onclick="asistente()" style="cursor:pointer;">{ASISTENTE} 🤖</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-detalle" id="modalDetalle">
+  <div class="caja">
+    <button class="cerrar" onclick="cerrarDetalle()">×</button>
+    <div class="imagen" id="detalleImagen"></div>
+    <div class="info">
+      <h2 id="detalleTitulo"></h2>
+      <div id="detallePrecio"></div>
+      <div id="detallePlataformas" class="plataformas"></div>
+      <p id="detalleDesc"></p>
+    </div>
+    <div class="acciones">
+      <button class="btn-comprar" id="detalleBtn">Comprar</button>
+      <button class="btn-cerrar" onclick="cerrarDetalle()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modalLogin">
+  <div class="caja">
+    <button class="cerrar" onclick="cerrarModal()">×</button>
+    <h3>Iniciar Sesión / Registro</h3>
+    <input type="text" id="nombreUsuario" placeholder="Nombre de usuario">
+    <input type="password" placeholder="Contraseña">
+    <button onclick="iniciarSesion()">Entrar</button>
+  </div>
+</div>
+
+<footer>
+  <div>
+    <h4>Conócenes</h4>
+    <a href="#">3057654678</a>
+    <a href="#">videojuegos65@gmail.com</a>
+  </div>
+  <div>
+    <h4>Ayuda</h4>
+    <a href="#">videojuegos65@gmail.com</a>
+    <a href="#">Preguntas Frecuentes</a>
+    <a href="#">3057654678</a>
+  </div>
+  <div>
+    <h4>Un proyecto en convenio con:</h4>
+    <div style="font-size:36px;font-weight:800;">Esumer</div>
+    <p style="font-size:11px;color:#666;">[DESCRIPCIÓN_CONVENIO]</p>
+  </div>
+</footer>
+<p class="legal">Legal noticios es contisoll ónsito insidio con lo tcio outro, outro esta mande de mandre prociololismos por uso componiente conomeriris over o mosde. Privacy police die conives.<br>© Copyright Estud-IA, 2lt Maqueta set ils realoreadlzero | Plataforma discilairmes.</p>
+
+<script>
+  // Juegos pequeños de arriba (con 30% de descuento)
+  const ofertas = [
+    { titulo: "Minecraft", precio: 125000, emoji: "⛏️", color: "#8bc34a", img: "https://image.api.playstation.com/vulcan/ap/rnd/202407/0401/670c294ded3baf4fa11068db2ec6758c63f7daeb266a35a1.png", descuento: true, plataformas: ["pc","playstation","xbox"] },
+    { titulo: "Poppy Playtime 1", precio: 22500, emoji: "🎭", color: "#e91e63", img: "https://static.wikia.nocookie.net/pplaytime/images/b/bc/Ch1ConsoleIcon.png/revision/latest?cb=20250107050100", descuento: true, plataformas: ["pc"] },
+    { titulo: "Counter-Strike", precio: 60000, emoji: "🔫", color: "#ff9800", img: "https://gaming-cdn.com/images/products/13664/orig/counter-strike-2-pc-juego-steam-cover.jpg?v=1695885435", descuento: true, plataformas: ["pc"] },
+    { titulo: "Red Dead Redemption 2", precio: 90000, emoji: "🤠", color: "#795548", img: "https://image.api.playstation.com/gs2-sec/appkgo/prod/CUSA08519_00/12/i_3da1cf7c41dc7652f9b639e1680d96436773658668c7dc3930c441291095713b/i/icon0.png", descuento: true, plataformas: ["pc","playstation","xbox"] },
+    { titulo: "Among Us", precio: 20000, emoji: "🚀", color: "#f44336", img: "https://static.wikia.nocookie.net/amongus/images/d/da/Among_Us_Logo.png/revision/latest?cb=20231211001930&path-prefix=es", descuento: true, plataformas: ["pc"] },
+    { titulo: "Spider-Man 2", precio: 300000, emoji: "🕷️", color: "#3f51b5", img: "https://image.api.playstation.com/vulcan/ap/rnd/202306/1219/60eca3ac155247e21850c7d075d01ebf0f3f5dbf19ccd2a1.jpg", descuento: true, plataformas: ["playstation"] },
+  ];
+
+  // Juegos grandes (sin descuento)
+  const tendencias = [
+    { titulo: "Call of Duty", precio: 270000, emoji: "🪖", color: "#607d8b", img: "https://store-images.s-microsoft.com/image/apps.30472.13966330883349940.9a0bbc3f-3231-4a17-ab16-55eb671f1755.d9aecc85-6637-4e56-a359-009944a02940", plataformas: ["pc","playstation","xbox"] },
+    { titulo: "FC27", precio: 285000, emoji: "⚽", color: "#4caf50", img: "https://www.indy100.com/media-library/related-video-rodri-and-mbappe-take-home-individual-world-cup-awards-messi-misses-out.jpg?id=67518758&width=1245&height=700&quality=50&coordinates=0%252C12%252C0%252C12", plataformas: ["pc","playstation","xbox"] },
+    { titulo: "GTA VI", precio: 340000, emoji: "🚗", color: "#9c27b0", img: "https://upload.wikimedia.org/wikipedia/commons/d/d6/Grand_Theft_Auto_VI_logo_%28with_gradient%29.svg", plataformas: ["pc","playstation","xbox"] },
+    { titulo: "Mecha Chameleon", precio: 25000, emoji: "🦎", color: "#00bcd4", img: "https://play-lh.googleusercontent.com/3ISHxOrw59GGOxdMhH8mKqlhA_XeZiz-BgGP5gbTp2YCdTka8umPU3I4weYd8MJ70aUY0XRHXkGUPQjL1FotMg", plataformas: ["pc"] },
+  ];
+
+  const fmt = n => "$" + n.toLocaleString("es-CO") + " COP";
+
+  function renderOfertas() {
+    document.getElementById("ofertas").innerHTML = ofertas.map(j => {
+      const nuevo = Math.round(j.precio * 0.7);
+      return `<div class="card" data-titulo="${j.titulo.toLowerCase()}">
+        <div class="img" style="background:${j.color}22">${j.img ? `<img src="${j.img}" alt="${j.titulo}">` : j.emoji}</div>
+        <div class="info">
+          <h3>${j.titulo}</h3>
+          <div class="precio-viejo">${fmt(j.precio)}</div>
+          <div><span class="precio">${fmt(nuevo)}</span><span class="descuento">-30%</span></div>
+        </div>
+        <button onclick="verOferta('${j.titulo}', ${nuevo}, this)">VER_OFERTA</button>
+      </div>`;
+    }).join("");
+  }
+
+  function renderTendencias() {
+    document.getElementById("tendencias").innerHTML = tendencias.map(j => `
+      <div class="card big" data-titulo="${j.titulo.toLowerCase()}">
+        <div class="img" style="background:${j.color}22">${j.img ? `<img src="${j.img}" alt="${j.titulo}">` : j.emoji}</div>
+        <div class="info">
+          <h3>${j.titulo}</h3>
+          <div style="color:#666;font-size:12px;">Categoría / Género</div>
+          <div class="precio">${fmt(j.precio)}</div>
+        </div>
+        <button onclick="comprar('${j.titulo}', ${j.precio}, this)">COMPRAR</button>
+      </div>`).join("");
+  }
+
+  function filtrar() {
+    const q = document.getElementById("buscador").value.toLowerCase();
+    const secciones = [
+      { sec: document.getElementById("secOfertas"), grid: document.getElementById("ofertas") },
+      { sec: document.getElementById("secTendencias"), grid: document.getElementById("tendencias") },
+    ];
+    secciones.forEach(({ sec, grid }) => {
+      let visibles = 0;
+      grid.querySelectorAll(".card").forEach(c => {
+        const mostrar = c.dataset.titulo.includes(q);
+        c.style.display = mostrar ? "" : "none";
+        if (mostrar) visibles++;
+      });
+      sec.style.display = visibles > 0 ? "" : "none";
+    });
+  }
+
+  renderOfertas();
+  renderTendencias();
+
+  // Toast de notificación
+  function mostrarToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 3000);
+  }
+
+  function irA(id) {
+    document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+  }
+
+  function alertas() {
+    mostrarToast("🔔 Tienes 4 alertas de precio activas. Revisa tu correo.");
+  }
+
+  function asistente() {
+    mostrarToast("🤖 Asistente IA: ¡Hola! Puedo ayudarte a encontrar el mejor precio. Escribe un juego en el buscador.");
+  }
+
+  function panelAdmin() {
+    const clave = prompt("Ingresa la clave de administrador:");
+    if (clave === "admin123") mostrarToast("✅ Bienvenido al Panel Admín.");
+    else if (clave) mostrarToast("❌ Clave incorrecta.");
+  }
+
+  function abrirModal() { document.getElementById("modalLogin").classList.add("activo"); }
+  function cerrarModal() { document.getElementById("modalLogin").classList.remove("activo"); }
+
+  function iniciarSesion() {
+    const n = document.getElementById("nombreUsuario").value.trim();
+    if (n) {
+      mostrarToast("✅ Sesión iniciada. ¡Hola, " + n + "!");
+      cerrarModal();
+    } else {
+      mostrarToast("⚠️ Escribe tu nombre de usuario.");
+    }
+  }
+
+  // Buscar juego por título en ambos catálogos
+  function buscarJuego(titulo) {
+    const t = titulo.toLowerCase();
+    const encontrado = [...ofertas, ...tendencias].find(j => j.titulo.toLowerCase() === t);
+    return encontrado || null;
+  }
+
+  const iconosPlataformas = {
+    pc: "https://png.pngtree.com/png-clipart/20220105/ourmid/pngtree-black-and-white-card-computer-logo-material-png-image_4083650.png",
+    playstation: "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/Playstation_logo_colour.svg/3840px-Playstation_logo_colour.svg.png",
+    xbox: "https://w7.pngwing.com/pngs/568/594/png-transparent-xbox-logo-kinect-xbox-360-computer-icons-xbox-logo-icon-electronics-leaf-trademark-thumbnail.png",
+  };
+
+  function abrirDetalle(juego) {
+    document.getElementById("detalleTitulo").textContent = juego.titulo;
+    document.getElementById("detalleImagen").innerHTML = juego.img
+      ? `<img src="${juego.img}" alt="${juego.titulo}">`
+      : `<span style="font-size:64px">${juego.emoji}</span>`;
+
+    const precioNuevo = juego.descuento ? Math.round(juego.precio * 0.7) : juego.precio;
+    const precioHtml = juego.descuento
+      ? `<span class="precio-viejo">${fmt(juego.precio)}</span><span class="precio">${fmt(precioNuevo)}</span><span class="descuento">-30%</span>`
+      : `<span class="precio">${fmt(precioNuevo)}</span>`;
+    document.getElementById("detallePrecio").innerHTML = precioHtml;
+
+    // Renderizar plataformas
+    const cont = document.getElementById("detallePlataformas");
+    cont.innerHTML = "";
+    (juego.plataformas || []).forEach(p => {
+      if (iconosPlataformas[p]) {
+        cont.innerHTML += `<img src="${iconosPlataformas[p]}" alt="${p}" title="${p}">`;
+      }
+    });
+
+    document.getElementById("detalleDesc").textContent =
+      "¡Gran precio para este título! Disponible para compra inmediata en Estud-IA.";
+
+    const btn = document.getElementById("detalleBtn");
+    btn.textContent = juego.descuento ? "Ver Oferta" : "Comprar";
+    btn.onclick = () => {
+      mostrarToast("🛒 " + juego.titulo + " agregado al carrito por " + fmt(precioNuevo));
+      cerrarDetalle();
+    };
+
+    document.getElementById("modalDetalle").classList.add("activo");
+  }
+
+  function cerrarDetalle() {
+    document.getElementById("modalDetalle").classList.remove("activo");
+  }
+
+  function verOferta(titulo, precio, btn) {
+    const juego = buscarJuego(titulo);
+    if (juego) abrirDetalle(juego);
+    else mostrarToast("🏷️ Oferta de " + titulo + ": " + fmt(precio) + " (30% OFF ya aplicado)");
+  }
+
+  function comprar(titulo, precio, btn) {
+    const juego = buscarJuego(titulo);
+    if (juego) abrirDetalle(juego);
+    else mostrarToast("🛒 Agregando " + titulo + " al carrito por " + fmt(precio));
+  }
+
+  function abrirWhatsApp() {
+    window.open("https://wa.me/3057654678", "_blank");
+  }
+</script>
+
+</body>
+</html>
