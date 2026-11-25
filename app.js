@@ -18,7 +18,7 @@ const shapes = {
 const icon = name => '<svg class="icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+shapes[name]+'</svg>'
 const coverUrl = g => g.art.startsWith('https://images.gog-statics.com/') ? g.art.replace(/\.png$/,'_product_tile_536.jpg') : g.art
 const key = 'gamescout:mercados:v2'
-const validMarket = code => Object.hasOwn(markets,code)
+const validMarket = code => Object.prototype.hasOwnProperty.call(markets,code)
 function readState() {
   try {
     const current = JSON.parse(localStorage.getItem(key))
@@ -62,7 +62,7 @@ function image(g,important=false) {
 }
 function card(g,o=offers(g)[0]) {
   const percent=discount(o)
-  return '<a class="game" href="'+detail(g)+'"><div class="art">'+image(g)+(percent?'<b class="discount">−'+percent+'%</b>':'')+'</div><div class="cardinfo"><small>'+esc(g.genre)+'</small><h3>'+esc(g.title)+'</h3><div class="priceline"><strong>'+(o?(o.equivalent?'≈ ':'')+price(o.price):'Sin precio')+'</strong>'+(percent?'<del>'+price(o.regular)+'</del>':'')+'</div><span class="source">'+esc(o?o.store+' · PC':'Sin ofertas en este mercado')+'</span></div></a>'
+  return '<a class="game" href="'+detail(g)+'"><div class="art">'+image(g)+(percent?'<b class="discount">−'+percent+'%</b>':'')+'</div><div class="cardinfo"><small>'+esc(g.genre)+'</small><h3>'+esc(g.title)+'</h3><div class="priceline"><strong>'+(o?(o.equivalent?'≈ ':'')+price(o.price):'Sin precio')+'</strong>'+(percent?'<del>'+price(o.regular)+'</del>':'')+'</div><span class="source">'+esc(o?o.store+' · PC':'Sin ofertas en este mercado')+'</span><span class="compare-count">Ver precios · '+storeCount(g)+' '+(storeCount(g)===1?'tienda':'tiendas')+' ›</span></div></a>'
 }
 const searchBox = (value='')=>'<label class="search">'+icon('search')+'<input type="search" name="q" aria-label="Buscar un juego" placeholder="Busca un videojuego…" maxlength="90" value="'+esc(value)+'"></label>'
 const heading = (title,href,label)=>'<div class="sectionhead"><h2>'+title+'</h2><a class="quiet" href="'+href+'">'+label+icon('right')+'</a></div>'
@@ -76,12 +76,12 @@ function featured() {
 function hero() {
   const picks=featured(), idx=slide%picks.length, g=picks[idx], list=offers(g), best=list[0]
   const cover=g.id==='red-dead-redemption-2'?'./west-hero.jpg':coverUrl(g)
-  return '<section class="feature" aria-label="Juego destacado"><img class="heroart" src="'+esc(cover)+'" alt=""><div class="herocopy"><small class="kicker"><i></i> JUEGO DESTACADO</small><h1>'+esc(g.title)+'</h1><div class="herometa">'+esc(g.genre)+' · '+list.length+' '+(list.length===1?'tienda':'tiendas')+'</div><div class="heroaction"><a class="primary" href="'+detail(g)+'">'+icon('compare')+(list.length>1?'Comparar precios':'Ver precio')+'</a><span>Desde <strong>'+(best.equivalent?'≈ ':'')+price(best.price)+'</strong></span></div></div><div class="slides"><button data-slide="-1" aria-label="Juego destacado anterior">'+icon('left')+'</button><span>'+String(idx+1).padStart(2,'0')+' / '+String(picks.length).padStart(2,'0')+'</span><button data-slide="1" aria-label="Siguiente juego destacado">'+icon('right')+'</button></div></section>'
+  return '<section class="feature" aria-label="Juego destacado"><img class="heroart" src="'+esc(cover)+'" alt=""><div class="herocopy"><small class="kicker"><i></i> JUEGO DESTACADO</small><h1>'+esc(g.title)+'</h1><div class="herometa">'+esc(g.genre)+' · '+storeCount(g)+' '+(storeCount(g)===1?'tienda':'tiendas')+'</div><div class="heroaction"><a class="primary" href="'+detail(g)+'">'+icon('compare')+(storeCount(g)>1?'Comparar precios':'Ver precio')+'</a><span>Desde <strong>'+(best.equivalent?'≈ ':'')+price(best.price)+'</strong></span></div></div><div class="slides"><button data-slide="-1" aria-label="Juego destacado anterior">'+icon('left')+'</button><span>'+String(idx+1).padStart(2,'0')+' / '+String(picks.length).padStart(2,'0')+'</span><button data-slide="1" aria-label="Siguiente juego destacado">'+icon('right')+'</button></div></section>'
 }
 function home() {
   const catalog=shared(), picks=catalog.map(g=>({g,o:offers(g)[0]})).filter(x=>discount(x.o)>0).sort((a,b)=>discount(b.o)-discount(a.o))
   const selections=catalog.filter(g=>!picks.slice(0,4).some(x=>x.g===g)).slice(0,4)
-  return '<div class="wrap"><div class="discoverybar"><div class="context"><i></i> ESTUD-IA</div><form id="home-search">'+searchBox()+'</form><span class="currency">Precios de PC <b>·</b> '+currency()+'</span></div><div id="feature">'+hero()+'</div><div class="summaryline"><strong>'+catalog.length+' juegos en dos tiendas</strong><span>'+esc(markets[state.market].name)+' · Consulta del '+updated+'</span></div>'+heading('Juegos con descuento','#/ofertas','Todas las ofertas')+'<div class="cards">'+picks.slice(0,4).map(x=>card(x.g,x.o)).join('')+'</div>'+heading('Compara tienda por tienda','#/catalogo','Ver catálogo')+'<div class="cards">'+selections.map(g=>card(g)).join('')+'</div></div>'
+  return '<div class="wrap"><div class="discoverybar"><div class="context"><i></i> ESTUD-IA</div><form id="home-search">'+searchBox()+'</form><span class="currency">Precios de PC <b>·</b> '+currency()+'</span></div><div id="feature">'+hero()+'</div><div class="summaryline"><strong>'+catalog.length+' juegos en dos o más tiendas</strong><span>'+esc(markets[state.market].name)+' · Consulta del '+updated+'</span></div>'+heading('Juegos con descuento','#/ofertas','Todas las ofertas')+'<div class="cards">'+picks.slice(0,4).map(x=>card(x.g,x.o)).join('')+'</div>'+heading('Compara tienda por tienda','#/catalogo','Ver catálogo')+'<div class="cards">'+selections.map(g=>card(g)).join('')+'</div></div>'
 }
 const pairs = items => items.map(x=>[x,x])
 function catalog(deals,params) {
@@ -89,8 +89,8 @@ function catalog(deals,params) {
   return '<div class="wrap">'+pageHead('JUEGOS DE PC',deals?'Ofertas':'Catálogo','Precios para '+markets[state.market].name+' consultados el '+updated+'.')+'<form id="filters" class="filters">'+searchBox(params.get('q') || '')+
     select('tienda','Tienda',[['','Todas'],...pairs(stores)],params.get('tienda'))+
     select('genero','Género',[['','Todos'],...pairs(uniq(games.map(g=>g.genre)).sort())],params.get('genero'))+
-    select('comparar','Disponibilidad',[['','Todos los juegos'],['si','Dos o más tiendas']],params.get('comparar'))+
-    select('orden','Ordenar por',[['nombre','Nombre A–Z'],['precio','Menor precio'],['descuento','Mayor descuento']],params.get('orden'))+
+    select('comparar','Disponibilidad',[['','Todos los juegos'],['si','Dos o más en mi mercado']],params.get('comparar'))+
+    select('orden','Ordenar por',[['nombre','Nombre A–Z'],['precio','Menor precio'],['descuento','Mayor descuento'],['tiendas','Más tiendas disponibles']],params.get('orden'))+
     '<button class="textbtn" type="reset">Limpiar</button></form><p role="status" class="count" id="count"></p><div id="results"></div></div>'
 }
 function refreshResults(sync=false) {
@@ -104,15 +104,15 @@ function refreshResults(sync=false) {
     const eligible=all.filter(o=>(!f.tienda || o.store===f.tienda) && (!deals || discount(o)>0))
     if (!eligible.length) continue
     const o=f.orden==='descuento'?eligible.reduce((best,x)=>discount(x)>discount(best)?x:best):eligible[0]
-    rows.push({g,o})
+    rows.push({g,o,stores:f.orden==='tiendas'?storeCount(g):0})
   }
-  rows.sort((a,b)=>(f.orden==='precio'?a.o.price-b.o.price:f.orden==='descuento'?discount(b.o)-discount(a.o):0) || a.g.title.localeCompare(b.g.title,'es'))
+  rows.sort((a,b)=>(f.orden==='precio'?a.o.price-b.o.price:f.orden==='descuento'?discount(b.o)-discount(a.o):b.stores-a.stores) || a.g.title.localeCompare(b.g.title,'es'))
   const pageSize=24,last=Math.max(1,Math.ceil(rows.length/pageSize))
   const n=sync?1:Math.min(last,Math.max(1,parseInt(params.get('pagina'),10)||1))
   function url(i) {
     const p=new URLSearchParams(Object.entries(f).filter(([k,v])=>v && !(k==='orden' && v==='nombre')))
     if(i>1) p.set('pagina',String(i))
-    return '#/'+page+(p.size?'?'+p:'')
+    return '#/'+page+(p.toString()?'?'+p:'')
   }
   lastListing=url(n)
   if(sync) history.replaceState(null,'',lastListing)
@@ -120,14 +120,39 @@ function refreshResults(sync=false) {
   const pager=last>1?'<nav class="pager" aria-label="Páginas del catálogo">'+(n>1?'<a class="secondary" href="'+esc(url(n-1))+'">‹ Anterior</a>':'')+'<span>Página '+n+' de '+last+'</span>'+(n<last?'<a class="secondary" href="'+esc(url(n+1))+'">Siguiente ›</a>':'')+'</nav>':''
   document.querySelector('#results').innerHTML=rows.length?'<div class="cards">'+rows.slice((n-1)*pageSize,n*pageSize).map(x=>card(x.g,x.o)).join('')+'</div>'+pager:'<div class="empty"><h2>Sin coincidencias</h2><p>Prueba con otro título o limpia los filtros.</p></div>'
 }
+function storeCount(g) {
+  return new Set(g.offers.filter(o=>o.market===state.market || o.market==='US').map(o=>o.store)).size
+}
+function offerRows(g,list,lowestLabel='Mejor precio') {
+  const best=list[0]
+  return '<ul class="store-list">'+list.map(o=>{
+    const lowest=list.length>1 && o.price===best.price
+    const hint=lowest?lowestLabel:o.source || 'Tienda oficial'
+    const amount=money(o.amount,o.currency)
+    return '<li><a class="store-offer" href="'+esc(o.url)+'" target="_blank" rel="noopener noreferrer" aria-label="'+esc(g.title+' en '+o.store+', '+amount+', '+markets[o.market].name)+'">'+
+      '<span class="seller"><strong>'+esc(o.store)+'</strong><small class="'+(lowest?'met':'')+'">'+esc(hint)+'</small></span>'+
+      '<span class="offer-price"><b>'+esc(amount)+'</b>'+(discount(o)?'<del>'+esc(money(o.originalRegular,o.currency))+'</del>':'')+(o.equivalent?'<small>≈ '+money(o.price,markets[o.market].currency)+'</small>':'')+'</span>'+
+      '<span class="store-go"><span>Ver oferta</span> ↗</span></a></li>'
+  }).join('')+'</ul>'
+}
 function gamePage(g) {
   const list=offers(g), best=list[0], goal=state.alerts.find(a=>a.id===g.id && a.market===state.market)
+  const localStores=new Set(list.map(o=>o.store))
+  const others=state.market==='US'?[]:offersFor(g,'US').filter(o=>!localStores.has(o.store))
   const intro='<div class="wrap"><a class="back" href="'+esc(lastListing)+'">‹ Volver al catálogo</a><div class="gameintro"><div class="detailart">'+image(g,true)+'</div>'+pageHead(g.genre,g.title,[g.developer,g.year,'PC'].filter(Boolean).join(' · '))+'</div>'
-  if(!best) return intro+empty('Sin precio para este mercado','Puedes consultar otra región en el selector de mercado.')+'</div>'
-  const quote=o=>'<div class="quote"><div><strong>'+esc(o.store)+'</strong><small>'+(o.price===best.price && list.length>1?'Mejor precio':'PC')+'</small></div><div><b>'+money(o.amount,o.currency)+'</b>'+(discount(o)?'<del>'+money(o.originalRegular,o.currency)+'</del>':'')+(o.equivalent?'<small>≈ '+price(o.price)+'</small>':'')+'</div><a class="secondary" aria-label="Ver '+esc(g.title)+' en '+esc(o.store)+'" href="'+esc(o.url)+'" target="_blank" rel="noopener noreferrer">Ir a tienda ↗</a></div>'
-  const spread=list.at(-1).price-best.price
-  const explanation=list.some(o=>o.equivalent)?'<p class="rate">Los importes en USD se ordenan con la TRM de '+money(exchange.usdCop,'USD').replace(' USD','')+' COP por dólar. El cobro final depende del medio de pago.</p>':''
-  return intro+'<div class="columns"><section class="panel"><h2>Comparar tiendas</h2><p class="muted">'+esc(markets[state.market].name)+' · '+updated+'</p><div class="quotes">'+list.map(quote).join('')+'</div>'+explanation+(spread>0?'<p class="savings">Diferencia entre tiendas <strong>'+price(spread)+'</strong></p>':'')+'</section><aside class="panel alertpanel">'+icon('bell')+'<h2>Alerta de precio</h2><p>Guarda tu objetivo para '+esc(markets[state.market].name)+'. Podrás consultar el resultado en Mis alertas.</p><form id="target-form" data-id="'+esc(g.id)+'"><label>Mi precio objetivo ('+currency()+')<input type="number" name="target" required min="0" max="99999999" step="'+(currency()==='COP'?'1':'0.01')+'" value="'+(goal?.target??(currency()==='COP'?Math.floor(best.price*.9):(best.price*.9).toFixed(2)))+'"></label><button class="primary">'+(goal?'Actualizar alerta':'Crear alerta')+'</button></form></aside></div></div>'
+  const storeLabel=n=>n+' '+(n===1?'tienda':'tiendas')
+  const spread=best?list[list.length-1].price-best.price:0
+  const local='<section class="panel price-panel"><h2>Precios en '+esc(markets[state.market].name)+'</h2><p class="quote-meta">'+storeLabel(list.length)+' · '+updated+'</p>'+
+    (best?offerRows(g,list):'<p>Sin ofertas verificadas para este mercado.</p>')+
+    (spread>0?'<p class="savings">Diferencia entre tiendas <strong>'+price(spread)+'</strong></p>':'')+
+    (list.some(o=>o.equivalent)?'<p class="rate">Equivalentes en pesos calculados con la TRM de '+money(exchange.usdCop,'USD').replace(' USD','')+' COP por dólar.</p>':'')+'</section>'
+  const international=others.length?'<section class="panel price-panel"><h2>Más tiendas en Estados Unidos</h2><p class="quote-meta">'+storeLabel(others.length)+' · USD · '+updated+'</p><p class="market-note">Estas ofertas corresponden a Estados Unidos. Comprueba en la tienda si puedes comprarlas y activar el juego en tu país.</p>'+offerRows(g,others,'Menor de esta lista')+'<a class="quiet" href="'+detail(g,'US')+'">Ver todas las ofertas de Estados Unidos ›</a></section>':''
+  let goalPanel=''
+  if(best) {
+    const defaultTarget=currency()==='COP'?Math.floor(best.price*.9):(best.price*.9).toFixed(2)
+    goalPanel='<aside class="panel alertpanel">'+icon('bell')+'<h2>Alerta de precio</h2><p>Guarda tu objetivo para '+esc(markets[state.market].name)+'. Podrás consultar el resultado en Mis alertas.</p><form id="target-form" data-id="'+esc(g.id)+'"><label>Mi precio objetivo ('+currency()+')<input type="number" name="target" required min="0" max="99999999" step="'+(currency()==='COP'?'1':'0.01')+'" value="'+(goal?.target??defaultTarget)+'"></label><button class="primary">'+(goal?'Actualizar alerta':'Crear alerta')+'</button></form></aside>'
+  }
+  return intro+'<div class="columns"><div class="price-groups">'+local+international+'</div>'+goalPanel+'</div></div>'
 }
 function alertsPage() {
   return '<div class="wrap">'+pageHead('SEGUIMIENTO','Mis alertas','Cada objetivo conserva su mercado y moneda. El estado se calcula con la última consulta de precios.')+
@@ -156,7 +181,7 @@ function answer(q) {
 }
 function panelPage() {
   const count=shared().length
-  return '<div class="wrap narrow">'+pageHead('DATOS DEL CATÁLOGO','Fuentes y precios','Última consulta del '+updated+'.')+'<section class="panel stack"><h2>'+count+' juegos comparables</h2><p>En '+markets[state.market].name+', estos juegos tienen precios en al menos dos tiendas para la misma edición de PC. Los importes proceden de los catálogos de Steam, GOG y Microsoft Store. Cada ficha enlaza al producto oficial.</p><p>En Colombia, GOG publica en dólares. Para ordenar las ofertas se usa la TRM vigente del '+exchange.validFrom+' al '+exchange.validTo+'.</p><a class="quiet" href="https://www.datos.gov.co/resource/32sa-8pi3.json" target="_blank" rel="noopener noreferrer">Consultar la fuente de la TRM ↗</a></section><form id="simulator" class="panel stack"><h2>Probar un precio</h2><p>Compara una oferta que hayas encontrado con la más económica del catálogo.</p>'+select('game','Juego',games.filter(g=>offers(g).length).map(g=>[g.id,g.title]),'')+'<label>Precio que encontraste ('+currency()+')<input type="number" name="amount" min="0" max="99999999" step="'+(currency()==='COP'?'1':'0.01')+'" required></label><button class="primary">Comparar mi precio</button><output id="sim-result" aria-live="polite"></output></form></div>'
+  return '<div class="wrap narrow">'+pageHead('DATOS DEL CATÁLOGO','Fuentes y precios','Última consulta del '+updated+'.')+'<section class="panel stack"><h2>'+count+' juegos comparables</h2><p>En '+markets[state.market].name+', estos juegos tienen precios en al menos dos tiendas para la misma edición de PC. Los precios regionales proceden de Steam, GOG, Nuuvem y Microsoft Store. CheapShark aporta precios de otras tiendas para Estados Unidos y dirige a cada vendedor. Cada ficha indica el mercado donde se consultó la oferta.</p><p>En Colombia, GOG publica en dólares. Para ordenar las ofertas se usa la TRM vigente del '+exchange.validFrom+' al '+exchange.validTo+'.</p><a class="quiet" href="https://www.datos.gov.co/resource/32sa-8pi3.json" target="_blank" rel="noopener noreferrer">Consultar la fuente de la TRM ↗</a></section><form id="simulator" class="panel stack"><h2>Probar un precio</h2><p>Compara una oferta que hayas encontrado con la más económica del catálogo.</p>'+select('game','Juego',games.filter(g=>offers(g).length).map(g=>[g.id,g.title]),'')+'<label>Precio que encontraste ('+currency()+')<input type="number" name="amount" min="0" max="99999999" step="'+(currency()==='COP'?'1':'0.01')+'" required></label><button class="primary">Comparar mi precio</button><output id="sim-result" aria-live="polite"></output></form></div>'
 }
 function infoPage(contact) {
   if(contact) return '<div class="wrap narrow">'+pageHead('ESTUD-IA','Contacto')+'<section class="panel stack"><h2>Habla con el equipo</h2><a class="quiet" href="mailto:videojuegos65@gmail.com">videojuegos65@gmail.com</a><a class="secondary" target="_blank" rel="noopener noreferrer" href="https://wa.me/573057654678">Abrir WhatsApp</a></section></div>'
@@ -168,7 +193,7 @@ function render(focus=false) {
   if(g && validMarket(params.get('mercado')) && state.market!==params.get('mercado')) {state.market=params.get('mercado');save()}
   const views={inicio:home,catalogo:()=>catalog(false,params),ofertas:()=>catalog(true,params),alertas:alertsPage,perfil:profilePage,asistente:assistantPage,panel:panelPage,ayuda:()=>infoPage(false),contacto:()=>infoPage(true)}
   header(page)
-  main.innerHTML=g?gamePage(g):Object.hasOwn(views,page)?views[page]():'<div class="wrap">'+empty('Ficha no disponible','Busca otro título en el catálogo oficial.')+'</div>'
+  main.innerHTML=g?gamePage(g):Object.prototype.hasOwnProperty.call(views,page)?views[page]():'<div class="wrap">'+empty('Ficha no disponible','Busca otro título en el catálogo oficial.')+'</div>'
   document.title=(g?.title || paths[page] || 'Ficha no disponible')+' · GameScout'
   if(['catalogo','ofertas'].includes(page)) refreshResults()
   if(page==='asistente' && assistantQuery) answer(assistantQuery)

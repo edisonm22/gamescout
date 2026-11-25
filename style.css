@@ -193,6 +193,55 @@ footer { border-top:1px solid var(--line);background:#111415 }
 .savings strong,#sim-result { color:var(--lime) }
 .missing-cover { background:linear-gradient(135deg,#223c33,#192729 65%,#445229) }
 img[hidden] { display:none!important }
+.compare-count { display:block;margin-top:.75rem;color:var(--lime);font-size:.81rem;font-weight:650 }
+.price-groups { display:grid;gap:1rem;min-width:0 }
+.price-panel,.alertpanel,.gameintro>*,.cardinfo,.filters>label,.stack,.stack select { min-width:0 }
+.price-panel h2 { margin-bottom:.4rem }
+.quote-meta { margin:0 0 1rem;color:var(--soft);font-size:.9rem }
+.market-note { margin:0 0 1rem;line-height:1.5 }
+.store-list { list-style:none;padding:0;margin:0 }
+.store-list li { border-top:1px solid var(--line) }
+.store-offer { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto) auto;align-items:center;gap:clamp(.5rem,1.5vw,1.1rem);padding:.95rem .2rem;min-height:54px }
+.store-offer:hover,.store-offer:focus-visible { background:#222829 }
+.seller,.offer-price { display:grid;gap:.15rem;overflow-wrap:anywhere }
+.seller strong { font-size:1rem }
+.offer-price { text-align:right;font-variant-numeric:tabular-nums }
+.offer-price b { font-size:1.15rem }
+.store-go { color:var(--lime);font-size:.84rem;font-weight:700 }
+.price-panel>.quiet { margin-top:1rem }
+.game h3,.pagehead h1,.foot,.savings,.account,.alertrow { overflow-wrap:anywhere }
+.mast .account,.slides button,.pager a,.mast nav a,.secondary,.primary,.textbtn { min-height:44px }
+.mast .account { min-width:44px;justify-content:center }
+.slides button { min-width:44px }
+.filters select,.stack select,.stack input { max-width:100% }
+@media(max-width:900px) {
+  .columns { grid-template-columns:minmax(0,1fr) }
+  .alertpanel { max-width:100% }
+}
+@media(max-width:600px) {
+  .store-go span { display:none }
+  .store-go { font-size:1.1rem }
+  .quote-meta,.market-note { font-size:.85rem }
+  .foot nav { flex-wrap:wrap }
+  .gameintro { grid-template-columns:minmax(0,1fr) }
+  .mast nav { display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.15rem }
+  .mast nav a { text-align:center;align-items:center;justify-content:center;white-space:normal;line-height:1.15 }
+  .mast nav small { padding:0 .2rem }
+  .mast { align-items:center }
+  .sectionhead { align-items:flex-start }
+  .sectionhead .quiet { min-height:44px }
+  .sectionhead>* { min-width:0 }
+}
+@media(max-width:380px) {
+  .mast { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:.25rem }
+  .mast .market { width:100%;max-width:100%;min-width:0 }
+  .mast nav { grid-column:1 / -1;grid-row:2 }
+  .mast .brand { font-size:1.1rem;gap:.25rem }
+  .store-offer { padding:.8rem 0 }
+  .heroaction,.heroaction .primary,.herocopy { min-width:0 }
+  .heroart { object-position:62% center }
+  .filters>.search { min-width:0 }
+}
 .herocopy h1 { overflow-wrap:break-word }
 @media(max-width:580px) {
   .market { max-width:10.8rem; font-size:.76rem; padding:.4rem }

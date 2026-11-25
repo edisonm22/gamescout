@@ -1,6 +1,7 @@
 // Ejecutar con Node 22 o posterior. Solo reemplaza el catálogo si pasa las comprobaciones.
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { setTimeout as pause } from 'node:timers/promises'
+import { addStores } from './tiendas.mjs'
 
 const output = new URL('./catalogo.js', import.meta.url)
 const markets = { CO: 'COP', US: 'USD', ES: 'EUR' }
@@ -118,6 +119,7 @@ async function main() {
     console.log(market,matched.length,'juegos con comparación')
     if (new Set(matched.map(g=>identity(g.title))).size < 200) throw new Error('Cobertura insuficiente en '+market)
   }
+  await addStores(items,json)
   const games = items.filter(g=>g.offers.length)
   for (const g of games) for (const o of g.offers) {
     if (!Number.isFinite(o.amount) || !Number.isFinite(o.regular) || o.amount<0 || o.regular<o.amount || !/^https:\/\//.test(o.url)) throw new Error('Oferta inválida: '+g.title)
