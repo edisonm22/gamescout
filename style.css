@@ -42,6 +42,8 @@ img[hidden] { display:none!important }
 select,input:not([type=search]),textarea { background:var(--surface);border:1px solid #aeb9ae;border-radius:7px;padding:.68rem .78rem }
 select { min-height:44px }
 .market { margin-left:auto;max-width:11.7rem;background:#23352a;color:#fff;border-color:#4b5c4e;font-size:.84rem }
+.market-control { position:relative;min-width:0;margin-left:auto }
+.market-short { display:none }
 .account { border:1px solid #4b5c4e;padding:0 .7rem;border-radius:7px }
 .account span { max-width:8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap }
 .primary,.secondary,.search-submit { width:fit-content;min-height:44px;justify-content:center;gap:.5rem;border-radius:7px;padding:.65rem 1rem;font-weight:720;font-size:.93rem;line-height:1.25 }
@@ -134,6 +136,20 @@ textarea { resize:vertical }
 .gameintro { display:grid;grid-template-columns:minmax(175px,.7fr) minmax(0,1.3fr);gap:clamp(1.2rem,3vw,3.2rem);align-items:center;margin:.25rem 0 1.8rem }
 .detailart,.thumb { border-radius:9px }.gameintro .pagehead { padding:0 }
 .gameintro h1 { font-size:clamp(2.05rem,4.4vw,4.3rem) }
+.best-summary { display:flex;align-items:center;flex-wrap:wrap;gap:.8rem 1.8rem;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--line) }
+.best-summary>div { display:grid;gap:.12rem }
+.best-summary span,.best-summary small { color:var(--muted);font-size:.86rem }
+.best-summary strong { font-size:clamp(1.5rem,3vw,2.1rem);letter-spacing:-.04em;line-height:1.1 }
+.store-offer.selected-offer { background:#eef5e4;box-shadow:inset 3px 0 #537144;padding-inline:.65rem }
+.seller small.picked { font-weight:700;color:var(--green) }
+.filters { display:grid;align-items:start }
+.filters .search { width:100% }
+.filter-options,.filter-options:last-child { padding:0;border:0 }
+.filter-options summary { width:fit-content;padding:.5rem 0;min-height:44px;color:var(--green) }
+.filter-fields { display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;align-items:end;gap:.8rem }
+.filter-fields .textbtn { justify-self:start }
+@media(max-width:800px) { .filter-fields { grid-template-columns:repeat(2,minmax(0,1fr)) } }
+@media(max-width:380px) { .filter-fields { grid-template-columns:minmax(0,1fr) } }
 .columns,.business-grid { display:grid;grid-template-columns:minmax(0,1.8fr) minmax(240px,1fr);gap:1.3rem;align-items:start }
 .price-groups,.stack,.alertpanel form,.alertlist { display:grid;gap:1rem;min-width:0 }
 .quote-meta { margin:.35rem 0 .8rem!important }
@@ -212,7 +228,9 @@ details p { margin:.65rem 0 }
  .offer-price b { font-size:1rem }.seller strong { font-size:.94rem }
 }
 @media(max-width:380px) {
- .mast { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:.25rem }.mast nav { grid-column:1/-1;grid-row:2 }
+ .mast { display:grid;grid-template-columns:max-content minmax(0,1fr) 44px;gap:.3rem }.mast nav { grid-column:1/-1;grid-row:2 }
+ .market-control { width:min(100%,7.3rem) }.mast .market { appearance:none;color:transparent }.mast .market option { color:var(--ink);background:white }
+ .market-short { position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;font-size:.81rem;font-weight:660 }
  .mast .market { width:100%;max-width:100% }.mast .brand { font-size:1.13rem;gap:.25rem }.mast .brand img { width:25px;height:25px }
  .board-head h2 { font-size:1.18rem }.deal-line { grid-template-columns:44px minmax(0,1fr) auto;gap:.4rem }
  .footer-grid { gap:1.25rem .65rem }.store-symbol { width:25px;height:25px }

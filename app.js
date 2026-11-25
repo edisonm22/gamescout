@@ -1,7 +1,9 @@
 import { games, offersFor, discount, normalize, money, markets, updated, exchange } from './data.js'
 
 const main = document.querySelector('main')
-const byId = id => games.find(g => g.id === id)
+const gameIndex = new Map(games.map(g => [g.id,g]))
+const searchIndex = new Map(games.map(g => [g.id,normalize([g.title,g.genre,g.developer].filter(Boolean).join(' '))]))
+const byId = id => gameIndex.get(id)
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 const paths = { inicio:'Explorar', catalogo:'Catálogo', ofertas:'Ofertas', alertas:'Mis alertas', asistente:'Asistente', perfil:'Mi perfil', ayuda:'Ayuda', contacto:'Contacto', panel:'Fuentes y precios',nosotros:'Sobre GameScout',metodo:'Metodología',tiendas:'Para tiendas',privacidad:'Privacidad' }
 const shapes = {
@@ -60,14 +62,17 @@ function header(page) {
     const count = id==='alertas' && state.alerts.length ? ' <small>'+state.alerts.length+'</small>' : ''
     return '<a href="#/'+(id==='inicio'?'':id)+'" '+(active?'aria-current="page"':'')+'>'+icon(symbol)+paths[id]+count+'</a>'
   }).join('')
-  document.querySelector('#header').innerHTML='<div class="wrap mast"><a class="brand" href="#/" aria-label="GameScout, inicio"><img src="./gamescout.svg" width="34" height="34" alt="">GameScout</a><nav aria-label="Principal">'+nav+'</nav><select class="market" aria-label="Mercado" id="market">'+options(marketOptions,state.market)+'</select><a class="account" href="#/perfil">'+icon('user')+'<span>'+esc(state.name || 'Mi perfil')+'</span></a></div>'
+  const marketControl='<div class="market-control"><select class="market" aria-label="Mercado" id="market">'+options(marketOptions,state.market)+'</select><span class="market-short" aria-hidden="true">'+state.market+' · '+currency()+' ▾</span></div>'
+  document.querySelector('#header').innerHTML='<div class="wrap mast"><a class="brand" href="#/" aria-label="GameScout, inicio"><img src="./gamescout.svg" width="34" height="34" alt="">GameScout</a><nav aria-label="Principal">'+nav+'</nav>'+marketControl+'<a class="account" href="#/perfil">'+icon('user')+'<span>'+esc(state.name || 'Mi perfil')+'</span></a></div>'
 }
 function image(g,important=false) {
   return '<img src="'+esc(coverUrl(g))+'" alt="" loading="'+(important?'eager':'lazy')+'" decoding="async">'
 }
+const storeLabel = n => n+' '+(n===1?'tienda':'tiendas')
 function card(g,o=offers(g)[0]) {
-  const percent=discount(o), stores=storeCount(g)
-  return '<a class="game" href="'+detail(g)+'"><div class="art">'+image(g)+(percent?'<b class="discount">−'+percent+'%</b>':'')+'</div><div class="cardinfo"><small>'+esc(g.genre)+'</small><h3>'+esc(g.title)+'</h3><div class="priceline"><strong>'+(o?(o.equivalent?'≈ ':'')+price(o.price):'Sin precio')+'</strong>'+(percent?'<del>'+price(o.regular)+'</del>':'')+'</div><span class="source">'+esc(o?o.store+' · PC':'Sin ofertas en este mercado')+'</span><span class="compare-count">'+icon('compare')+' Comparar '+stores+' '+(stores===1?'tienda':'tiendas')+'</span></div></a>'
+  const percent=discount(o), local=offers(g).length
+  const href=detail(g)+(o && o.store!==offers(g)[0]?.store?'&tienda='+encodeURIComponent(o.store):'')
+  return '<a class="game" href="'+esc(href)+'"><div class="art">'+image(g)+(percent?'<b class="discount">−'+percent+'%</b>':'')+'</div><div class="cardinfo"><small>'+esc(g.genre)+'</small><h3>'+esc(g.title)+'</h3><div class="priceline"><strong>'+(o?(o.equivalent?'≈ ':'')+price(o.price):'Sin precio')+'</strong>'+(percent?'<del>'+price(o.regular)+'</del>':'')+'</div><span class="source">'+esc(o?o.store+' · PC':'Sin ofertas en este mercado')+'</span><span class="compare-count">'+icon('compare')+storeLabel(local)+' en '+markets[state.market].name+'</span></div></a>'
 }
 const searchBox = (value='')=>'<label class="search">'+icon('search')+'<input type="search" name="q" aria-label="Buscar un juego" placeholder="Busca un videojuego…" maxlength="90" value="'+esc(value)+'"></label>'
 const heading = (title,href,label)=>'<div class="sectionhead"><h2>'+title+'</h2><a class="quiet" href="'+href+'">'+label+'</a></div>'
@@ -79,7 +84,9 @@ function featured() {
   return [byId('red-dead-redemption-2'),common.find(g=>/cyberpunk|hollow knight|control ultimate|disco elysium/i.test(g.title)) || common[0],common.find(g=>/baldur.s gate 3|no man.s sky|stardew valley|alan wake/i.test(g.title)) || common[1]].filter(g=>g && offers(g).length)
 }
 function hero() {
-  const picks=featured(), idx=slide%picks.length, g=picks[idx], best=offers(g)[0]
+  const picks=featured()
+  if(!picks.length) return empty('Sin destacados en este mercado','Puedes consultar la disponibilidad en el catálogo.')
+  const idx=slide%picks.length, g=picks[idx], best=offers(g)[0]
   const cover=g.id==='red-dead-redemption-2'?'./west-hero.jpg':coverUrl(g)
   return '<section class="feature" aria-label="Juego destacado"><img class="heroart" src="'+esc(cover)+'" fetchpriority="high" alt=""><div class="herocopy"><small class="feature-tag">Juego destacado</small><h2>'+esc(g.title)+'</h2><p class="hero-price">Desde <strong>'+(best.equivalent?'≈ ':'')+price(best.price)+'</strong> en '+esc(best.store)+'</p><a class="primary" href="'+detail(g)+'">'+icon('compare')+'Comparar precios</a></div><div class="slides"><button data-slide="-1" aria-label="Juego destacado anterior">'+icon('left')+'</button><span>'+(idx+1)+' / '+picks.length+'</span><button data-slide="1" aria-label="Siguiente juego destacado">'+icon('right')+'</button></div></section>'
 }
@@ -89,9 +96,9 @@ const coverage = {
 }
 function home() {
   const available=games.filter(g=>offers(g).length)
-  const deals=available.map(g=>({g,o:offers(g)[0]})).filter(x=>discount(x.o)>0).sort((a,b)=>discount(b.o)-discount(a.o)).slice(0,3)
-  const comparison=available.slice().sort((a,b)=>storeCount(b)-storeCount(a) || a.title.localeCompare(b.title,'es')).slice(0,4)
-  const dealRows=deals.map(({g,o})=>'<a class="deal-line" href="'+detail(g)+'"><span class="deal-cover">'+image(g)+'</span><span class="deal-title"><strong>'+esc(g.title)+'</strong><small>'+esc(o.store)+'</small></span><span class="deal-money"><b>−'+discount(o)+'%</b><strong>'+(o.equivalent?'≈ ':'')+price(o.price)+'</strong></span></a>').join('')
+  const deals=available.map(g=>({g,o:highestDiscount(offers(g))})).filter(x=>discount(x.o)>0).sort(compareDiscounts).slice(0,3)
+  const comparison=available.slice().sort((a,b)=>offers(b).length-offers(a).length || a.title.localeCompare(b.title,'es')).slice(0,4)
+  const dealRows=deals.map(({g,o})=>'<a class="deal-line" href="'+esc(detail(g)+'&tienda='+encodeURIComponent(o.store))+'"><span class="deal-cover">'+image(g)+'</span><span class="deal-title"><strong>'+esc(g.title)+'</strong><small>'+esc(o.store)+'</small></span><span class="deal-money"><b>−'+discount(o)+'%</b><strong>'+(o.equivalent?'≈ ':'')+price(o.price)+'</strong></span></a>').join('')
   return '<div class="wrap"><section class="home-intro"><div><h1>Compara precios de <em>videojuegos.</em></h1><p>Encuentra tu juego y consulta cuánto cuesta en cada tienda de PC.</p></div><form id="home-search">'+searchBox()+'<button class="search-submit" type="submit">Buscar</button></form></section>'+
     '<div class="lead-grid"><div id="feature">'+hero()+'</div><section class="deal-board"><div class="board-head">'+icon('tag')+'<h2>Mayores descuentos</h2></div>'+dealRows+'<a class="quiet board-link" href="#/ofertas?orden=descuento">Ver todas las ofertas</a></section></div>'+
     '<div class="data-strip"><span><strong>'+games.length+'</strong> juegos de PC</span><span><strong>'+coverage.stores+'</strong> tiendas</span><span><strong>'+coverage.prices.toLocaleString('es-CO')+'</strong> precios regionales</span><span class="strip-date">Última consulta <b>'+updated+'</b></span></div>'+
@@ -99,68 +106,74 @@ function home() {
     '<section class="project-note"><div>'+icon('compass')+'<h2>Cómo comparamos</h2></div><p>Cruzamos la edición, la plataforma y el mercado para que puedas comparar dos precios del mismo juego.</p><a class="secondary" href="#/metodo">Ver metodología</a></section></div>'
 }
 const pairs = items => items.map(x=>[x,x])
+const highestDiscount = list => list.reduce((best,o)=>discount(o)>discount(best)?o:best)
+const compareDiscounts = (a,b) => discount(b.o)-discount(a.o) || a.o.price-b.o.price || a.g.title.localeCompare(b.g.title,'es')
 function catalog(deals,params) {
   const stores=uniq(games.flatMap(g=>offers(g).map(o=>o.store))).sort()
-  return '<div class="wrap">'+pageHead('JUEGOS DE PC',deals?'Ofertas':'Catálogo','Precios para '+markets[state.market].name+' consultados el '+updated+'.')+'<form id="filters" class="filters">'+searchBox(params.get('q') || '')+
+  const expanded=!window.matchMedia('(max-width: 620px)').matches || ['tienda','genero','comparar','orden'].some(k=>params.has(k))
+  return '<div class="wrap">'+pageHead('JUEGOS DE PC',deals?'Ofertas':'Catálogo','Precios para '+markets[state.market].name+' consultados el '+updated+'.')+'<form id="filters" class="filters">'+searchBox(params.get('q') || '')+'<details class="filter-options" '+(expanded?'open':'')+'><summary>Filtrar y ordenar <span id="filter-count"></span></summary><div class="filter-fields">'+
     select('tienda','Tienda',[['','Todas'],...pairs(stores)],params.get('tienda'))+
     select('genero','Género',[['','Todos'],...pairs(uniq(games.map(g=>g.genre)).sort())],params.get('genero'))+
     select('comparar','Disponibilidad',[['','Todos los juegos'],['si','Dos o más en mi mercado']],params.get('comparar'))+
-    select('orden','Ordenar por',[['nombre','Nombre A–Z'],['precio','Menor precio'],['descuento','Mayor descuento'],['tiendas','Más tiendas disponibles']],params.get('orden'))+
-    '<button class="textbtn" type="reset">Limpiar</button></form><p role="status" class="count" id="count"></p><div id="results"></div></div>'
+    select('orden','Ordenar por',[['nombre','Nombre A–Z'],['precio','Menor precio'],['descuento','Mayor descuento'],['tiendas','Más tiendas en mi mercado']],params.get('orden') || (deals?'descuento':'nombre'))+
+    '<button class="textbtn" type="reset">Limpiar</button></div></details></form><p role="status" class="count" id="count"></p><div id="results"></div></div>'
 }
 function refreshResults(sync=false) {
   const f=Object.fromEntries(new FormData(document.querySelector('#filters')))
   const {page,params}=route(), deals=page==='ofertas', query=normalize(f.q)
   const rows=[]
   for (const g of games) {
-    if (!normalize(g.title+' '+g.genre+' '+(g.developer || '')).includes(query) || (f.genero && g.genre!==f.genero)) continue
+    if (!searchIndex.get(g.id).includes(query) || (f.genero && g.genre!==f.genero)) continue
     const all=offers(g)
     if (f.comparar==='si' && all.length<2) continue
     const eligible=all.filter(o=>(!f.tienda || o.store===f.tienda) && (!deals || discount(o)>0))
     if (!eligible.length) continue
-    const o=f.orden==='descuento'?eligible.reduce((best,x)=>discount(x)>discount(best)?x:best):eligible[0]
-    rows.push({g,o,stores:f.orden==='tiendas'?storeCount(g):0})
+    const o=f.orden==='descuento'?highestDiscount(eligible):eligible[0]
+    rows.push({g,o,stores:all.length})
   }
-  rows.sort((a,b)=>(f.orden==='precio'?a.o.price-b.o.price:f.orden==='descuento'?discount(b.o)-discount(a.o):b.stores-a.stores) || a.g.title.localeCompare(b.g.title,'es'))
+  if(f.orden==='descuento') rows.sort(compareDiscounts)
+  else rows.sort((a,b)=>(f.orden==='precio'?a.o.price-b.o.price:f.orden==='tiendas'?b.stores-a.stores:0) || a.g.title.localeCompare(b.g.title,'es'))
   const pageSize=24,last=Math.max(1,Math.ceil(rows.length/pageSize))
   const n=sync?1:Math.min(last,Math.max(1,parseInt(params.get('pagina'),10)||1))
   function url(i) {
-    const p=new URLSearchParams(Object.entries(f).filter(([k,v])=>v && !(k==='orden' && v==='nombre')))
+    const p=new URLSearchParams(Object.entries(f).filter(([k,v])=>v && !(k==='orden' && v===(deals?'descuento':'nombre'))))
+    p.set('mercado',state.market)
     if(i>1) p.set('pagina',String(i))
     return '#/'+page+(p.toString()?'?'+p:'')
   }
   lastListing=url(n)
   if(sync) history.replaceState(null,'',lastListing)
-  document.querySelector('#count').textContent=rows.length?rows.length+' juegos · Mostrando '+((n-1)*pageSize+1)+'–'+Math.min(n*pageSize,rows.length):'0 juegos'
+  const activeFilters=[f.tienda,f.genero,f.comparar].filter(Boolean).length
+  document.querySelector('#filter-count').textContent=activeFilters?'('+activeFilters+')':''
+  document.querySelector('#count').textContent=rows.length?rows.length+(rows.length===1?' juego':' juegos')+' · Mostrando '+((n-1)*pageSize+1)+'–'+Math.min(n*pageSize,rows.length):'0 juegos'
   const pager=last>1?'<nav class="pager" aria-label="Páginas del catálogo">'+(n>1?'<a class="secondary" href="'+esc(url(n-1))+'">‹ Anterior</a>':'')+'<span>Página '+n+' de '+last+'</span>'+(n<last?'<a class="secondary" href="'+esc(url(n+1))+'">Siguiente ›</a>':'')+'</nav>':''
-  document.querySelector('#results').innerHTML=rows.length?'<div class="cards">'+rows.slice((n-1)*pageSize,n*pageSize).map(x=>card(x.g,x.o)).join('')+'</div>'+pager:'<div class="empty"><h2>Sin coincidencias</h2><p>Prueba con otro título o limpia los filtros.</p></div>'
+  document.querySelector('#results').innerHTML=rows.length?'<div class="cards">'+rows.slice((n-1)*pageSize,n*pageSize).map(x=>card(x.g,x.o)).join('')+'</div>'+pager:'<div class="empty"><h2>Sin coincidencias</h2><p>Prueba con otro título o limpia los filtros.</p><button type="reset" form="filters" class="secondary">Ver todos los juegos</button></div>'
 }
-function storeCount(g) {
-  return new Set(g.offers.filter(o=>o.market===state.market || o.market==='US').map(o=>o.store)).size
-}
-function offerRows(g,list,lowestLabel='Mejor precio') {
+function offerRows(g,list,lowestLabel='Mejor precio',selectedStore='') {
   const best=list[0]
   return '<ul class="store-list">'+list.map(o=>{
     const lowest=list.length>1 && o.price===best.price
     const hint=lowest?lowestLabel:o.source || 'Tienda oficial'
     const amount=money(o.amount,o.currency)
-    return '<li><a class="store-offer" href="'+esc(o.url)+'" target="_blank" rel="noopener noreferrer" aria-label="'+esc(g.title+' en '+o.store+', '+amount+', '+markets[o.market].name)+'">'+
-      '<span class="seller-wrap"><span class="store-symbol" data-store="'+esc(o.store)+'" aria-hidden="true"></span><span class="seller"><strong>'+esc(o.store)+'</strong><small class="'+(lowest?'met':'')+'">'+esc(hint)+'</small></span></span>'+
+    const selected=o.store===selectedStore
+    return '<li><a class="store-offer'+(selected?' selected-offer':'')+'" href="'+esc(o.url)+'" target="_blank" rel="noopener noreferrer" aria-label="'+esc(g.title+' en '+o.store+', '+amount+', '+markets[o.market].name+(selected?', tienda seleccionada':''))+'">'+
+      '<span class="seller-wrap"><span class="store-symbol" data-store="'+esc(o.store)+'" aria-hidden="true"></span><span class="seller"><strong>'+esc(o.store)+'</strong><small class="'+(lowest?'met':'')+'">'+esc(hint)+'</small>'+(selected?'<small class="picked">Tienda seleccionada</small>':'')+'</span></span>'+
       '<span class="offer-price"><b>'+esc(amount)+'</b>'+(discount(o)?'<del>'+esc(money(o.originalRegular,o.currency))+'</del>':'')+(o.equivalent?'<small>≈ '+money(o.price,markets[o.market].currency)+'</small>':'')+'</span>'+
       '<span class="store-go"><span>Ver oferta</span> ↗</span></a></li>'
   }).join('')+'</ul>'
 }
-function gamePage(g) {
+function gamePage(g,selectedStore) {
   const list=offers(g), best=list[0], goal=state.alerts.find(a=>a.id===g.id && a.market===state.market)
   const localStores=new Set(list.map(o=>o.store))
   const others=state.market==='US'?[]:offersFor(g,'US').filter(o=>!localStores.has(o.store))
-  const intro='<div class="wrap"><a class="back" href="'+esc(lastListing)+'">‹ Volver al catálogo</a><div class="gameintro"><div class="detailart">'+image(g,true)+'</div>'+pageHead(g.genre,g.title,[g.developer,g.year,'PC'].filter(Boolean).join(' · '))+'</div>'
-  const storeLabel=n=>n+' '+(n===1?'tienda':'tiendas')
+  const summary=best?'<div class="best-summary"><div><span>Menor precio en '+markets[state.market].name+'</span><strong>'+money(best.amount,best.currency)+'</strong><small>'+esc(best.store)+(best.equivalent?' · ≈ '+price(best.price):'')+'</small></div><a class="primary" target="_blank" rel="noopener noreferrer" href="'+esc(best.url)+'">Ver en '+esc(best.store)+' ↗</a></div>':''
+  const backLabel=lastListing.startsWith('#/ofertas')?'Volver a ofertas':'Volver al catálogo'
+  const intro='<div class="wrap"><a class="back" href="'+esc(lastListing)+'">‹ '+backLabel+'</a><div class="gameintro"><div class="detailart">'+image(g,true)+'</div><div>'+pageHead(g.genre,g.title,[g.developer,g.year,'PC'].filter(Boolean).join(' · '))+summary+'</div></div>'
   const spread=best?list[list.length-1].price-best.price:0
   const reportBody=['Juego: '+g.title,'Mercado: '+markets[state.market].name,'Ficha: https://edisonm22.github.io/gamescout/'+detail(g),'Tienda: ','Precio que aparece en la tienda: '].join('\n')
   const reportLink='mailto:'+contactEmail+'?subject='+encodeURIComponent('Revisión de precio · '+g.title)+'&body='+encodeURIComponent(reportBody)
   const local='<section class="panel price-panel"><h2>Precios en '+esc(markets[state.market].name)+'</h2><p class="quote-meta">'+storeLabel(list.length)+' · '+updated+'</p>'+
-    (best?offerRows(g,list):'<p>Sin ofertas verificadas para este mercado.</p>')+
+    (best?offerRows(g,list,'Mejor precio',selectedStore):'<p>Sin ofertas verificadas para este mercado.</p>')+
     (spread>0?'<p class="savings">Diferencia entre tiendas <strong>'+price(spread)+'</strong></p>':'')+
     (list.some(o=>o.equivalent)?'<p class="rate">Equivalentes en pesos calculados con la TRM de '+money(exchange.usdCop,'USD').replace(' USD','')+' COP por dólar.</p>':'')+'<a class="quiet" href="'+esc(reportLink)+'">Informar de un precio incorrecto</a></section>'
   const international=others.length?'<section class="panel price-panel"><h2>Más tiendas en Estados Unidos</h2><p class="quote-meta">'+storeLabel(others.length)+' · USD · '+updated+'</p><p class="market-note">Estas ofertas corresponden a Estados Unidos. Comprueba en la tienda si puedes comprarlas y activar el juego en tu país.</p>'+offerRows(g,others,'Menor de esta lista')+'<a class="quiet" href="'+detail(g,'US')+'">Ver todas las ofertas de Estados Unidos ›</a></section>':''
@@ -186,14 +199,17 @@ function assistantPage() {
   return '<div class="wrap narrow">'+pageHead('ASISTENTE DEL CATÁLOGO','Encuentra tu juego','Busca por título, género o presupuesto en '+currency()+'.')+'<form id="assistant" class="panel stack"><label>¿Qué estás buscando?<input name="query" required maxlength="120" value="'+esc(assistantQuery)+'" placeholder="'+suggestion+'"></label><button class="primary">Ver sugerencias</button></form><div class="suggest">'+[suggestion,'Aventura','Minecraft'].map(q=>'<button class="secondary" data-query="'+q+'">'+q+'</button>').join('')+'</div><section id="answer" aria-live="polite"></section></div>'
 }
 function answer(q) {
-  const budget=q.toLowerCase().match(/(menos de|hasta|por debajo de|máximo de|maximo de|presupuesto de|\$)\s*\$?\s*([\d.,]+)/)
+  const budget=q.match(/(menos de|hasta|por debajo de|m[áa]ximo(?: de)?|presupuesto de|\$)\s*\$?\s*(\d+(?:[.,]\d+|[ \u00a0]\d{3}\b)*)/i)
   let max=Infinity
   if(budget) {
-    const raw=budget[2]
-    max=Number((/^\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?$/.test(raw)?raw.replaceAll('.',''):raw).replace(',','.'))
+    const raw=budget[2].replace(/\s/g,'')
+    const decimal=raw.match(/[.,](\d{1,2})$/)
+    const digits=raw.replace(/[.,]/g,'')
+    max=Number(digits)/(decimal?10**decimal[1].length:1)
   }
   const words=normalize(budget?q.replace(budget[0],''):q).split(' ').filter(w=>w && !['juegos','juego','por','de','en','para','cop','usd','eur','euros','pesos','dolares','quiero','un','una','con','hasta'].includes(w))
-  const matches=games.map(g=>({g,o:offers(g)[0]})).filter(({g,o})=>o && (/^(menos|por debajo)/.test(budget?.[0])?o.price<max:o.price<=max) && words.every(w=>normalize(g.title+' '+g.genre).includes(w))).sort((a,b)=>a.o.price-b.o.price).slice(0,8)
+  const exclusive=/^(menos|por debajo)/i.test(budget?.[0])
+  const matches=games.map(g=>({g,o:offers(g)[0]})).filter(({g,o})=>o && (exclusive?o.price<max:o.price<=max) && words.every(w=>searchIndex.get(g.id).includes(w))).sort((a,b)=>a.o.price-b.o.price).slice(0,8)
   document.querySelector('#answer').innerHTML=matches.length?'<h2>Sugerencias</h2><div class="cards smallcards">'+matches.map(x=>card(x.g,x.o)).join('')+'</div>':empty('Sin coincidencias','Prueba otro título o amplía el presupuesto.')
 }
 function panelPage() {
@@ -231,12 +247,17 @@ function infoPage(contact) {
   const faq=[['¿Cómo se comparan los juegos?','Elige un mercado y abre una ficha. Las tiendas se ordenan por precio para una misma edición de PC.'],['¿Qué precio voy a pagar?','Cada ficha muestra el importe regional de la última consulta. Comprueba la disponibilidad, los impuestos y el total en la tienda antes de comprar.'],['¿Cómo funcionan las alertas?','Cada objetivo tiene un juego, una moneda y un mercado. Abre Mis alertas para ver si el último precio alcanza tu objetivo.'],['¿Dónde están mis datos?','El alias, la región preferida y las alertas se guardan en este navegador.']]
   return '<div class="wrap narrow">'+pageHead('AYUDA','Preguntas frecuentes')+'<div class="panel">'+faq.map(([q,a])=>'<details><summary>'+q+'</summary><p>'+a+'</p></details>').join('')+'</div><p><a class="quiet" href="#/panel">Fuentes y precios</a></p></div>'
 }
-function render(focus=false) {
+function render(focus=false,persistRouteMarket=true) {
   const {page,id,params}=route(),g=page==='juego'?byId(id):null
-  if(g && validMarket(params.get('mercado')) && state.market!==params.get('mercado')) {state.market=params.get('mercado');save()}
+  if(!['catalogo','ofertas','juego'].includes(page)) lastListing='#/catalogo'
+  if((g || page==='catalogo' || page==='ofertas') && validMarket(params.get('mercado')) && state.market!==params.get('mercado')) {
+    state.market=params.get('mercado')
+    assistantQuery=''
+    if(persistRouteMarket) save()
+  }
   const views={inicio:home,catalogo:()=>catalog(false,params),ofertas:()=>catalog(true,params),alertas:alertsPage,perfil:profilePage,asistente:assistantPage,panel:panelPage,ayuda:()=>infoPage(false),contacto:()=>infoPage(true),nosotros:aboutPage,metodo:methodPage,tiendas:tradePage,privacidad:privacyPage}
   header(page)
-  main.innerHTML=g?gamePage(g):Object.prototype.hasOwnProperty.call(views,page)?views[page]():'<div class="wrap">'+empty('Ficha no disponible','Busca otro título en el catálogo oficial.')+'</div>'
+  main.innerHTML=g?gamePage(g,params.get('tienda')):Object.prototype.hasOwnProperty.call(views,page)?views[page]():'<div class="wrap">'+empty('Ficha no disponible','Busca otro título en el catálogo oficial.')+'</div>'
   document.title=(g?.title || paths[page] || 'Ficha no disponible')+' · GameScout'
   if(['catalogo','ofertas'].includes(page)) refreshResults()
   if(page==='asistente' && assistantQuery) answer(assistantQuery)
@@ -245,7 +266,7 @@ function render(focus=false) {
 document.addEventListener('submit',e=>{
   e.preventDefault()
   const f=e.target,data=new FormData(f)
-  if(f.id==='home-search') location.hash='/catalogo?q='+encodeURIComponent(data.get('q').trim())
+  if(f.id==='home-search') location.hash='/catalogo?'+new URLSearchParams({q:data.get('q').trim(),mercado:state.market})
   if(f.id==='filters') refreshResults(true)
   if(f.id==='target-form') {
     state.alerts=state.alerts.filter(a=>a.id!==f.dataset.id || a.market!==state.market)
@@ -288,19 +309,27 @@ document.addEventListener('submit',e=>{
 document.addEventListener('input',e=>{
   if(e.target.closest('#filters')) refreshResults(true)
   if(e.target.closest('#proposal')) document.querySelector('#proposal-result').replaceChildren()
+  if(e.target.closest('#simulator')) document.querySelector('#sim-result').textContent=''
 })
 document.addEventListener('reset',e=>{
   if(e.target.id!=='filters')return
   e.preventDefault()
-  for(const input of e.target.querySelectorAll('input,select')) input.value=input.name==='orden'?'nombre':''
+  for(const input of e.target.querySelectorAll('input,select')) input.value=input.name==='orden'?(route().page==='ofertas'?'descuento':'nombre'):''
   refreshResults(true)
 })
 document.addEventListener('change',e=>{
   if(e.target.id!=='market' || !validMarket(e.target.value))return
   state.market=e.target.value;assistantQuery='';save()
-  const {page,id}=route()
+  const {page,id,params}=route()
   if(page==='juego' && byId(id)) history.replaceState(null,'',detail(byId(id)))
+  if(page==='catalogo' || page==='ofertas') {
+    params.set('mercado',state.market)
+    params.delete('pagina')
+    if(params.has('tienda') && !games.some(g=>offers(g).some(o=>o.store===params.get('tienda')))) params.delete('tienda')
+    history.replaceState(null,'','#/'+page+'?'+params)
+  }
   render()
+  document.querySelector('#market').focus({preventScroll:true})
 })
 document.addEventListener('click',e=>{
   const b=e.target.closest('button')
@@ -319,5 +348,5 @@ document.addEventListener('error',e=>{
 },true)
 document.querySelector('.skip').addEventListener('click',e=>{e.preventDefault();main.focus()})
 window.addEventListener('hashchange',()=>render(true))
-window.addEventListener('storage',e=>{if(e.key===key || e.key===null){state=readState();render()}})
+window.addEventListener('storage',e=>{if(e.key===key || e.key===null){state=readState();render(false,false)}})
 render()
