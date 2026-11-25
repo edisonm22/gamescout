@@ -3,20 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0e1011">
-  <meta name="description" content="Compara precios de juegos de PC en tiendas oficiales para Colombia, Estados Unidos y España.">
-  <title>GameScout · Estud-IA</title>
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.js"></script>
+  <meta name="theme-color" content="#15221c">
+  <meta name="description" content="Busca juegos de PC y compara precios, ediciones y tiendas para Colombia, Estados Unidos y España en GameScout.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_CO">
+  <meta property="og:site_name" content="GameScout">
+  <meta property="og:title" content="GameScout · Comparador de videojuegos">
+  <meta property="og:description" content="Consulta el precio de cada tienda y guarda un objetivo para tu mercado.">
+  <meta property="og:url" content="https://edisonm22.github.io/gamescout/">
+  <meta property="og:image" content="https://edisonm22.github.io/gamescout/gamescout-social.png">
+  <meta property="og:image:alt" content="GameScout, comparador de precios de videojuegos de PC">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>GameScout · Comparador de videojuegos</title>
+  <link rel="icon" type="image/svg+xml" href="./gamescout.svg">
+  <link rel="preload" href="./dm-sans.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./style.css?v=identidad-1">
+  <script type="module" src="./app.js?v=identidad-1"></script>
 </head>
 <body>
   <a class="skip" href="#contenido">Saltar al contenido</a>
   <header id="header"></header>
   <main id="contenido" tabindex="-1"></main>
   <footer>
-    <div class="wrap foot"><a class="brand" href="#/"><i class="mark" aria-hidden="true"></i>GameScout</a>
-    <span>Un proyecto de Estud-IA</span>
-    <nav aria-label="Información"><a href="#/ayuda">Ayuda</a><a href="#/contacto">Contacto</a><a href="#/panel">Fuentes y precios</a></nav></div>
+    <div class="wrap footer-grid">
+      <div class="footer-brand"><a class="brand" href="#/" aria-label="GameScout, inicio"><img src="./gamescout.svg" width="34" height="34" alt="">GameScout</a><p>Comparador de precios de videojuegos de PC.</p><small>Un proyecto de Estud-IA</small></div>
+      <nav aria-label="Explorar"><h2>Explorar</h2><a href="#/catalogo">Catálogo</a><a href="#/ofertas">Ofertas</a><a href="#/alertas">Mis alertas</a><a href="#/asistente">Asistente</a></nav>
+      <nav aria-label="Proyecto"><h2>GameScout</h2><a href="#/nosotros">Sobre GameScout</a><a href="#/metodo">Cómo comparamos</a><a href="#/panel">Fuentes y precios</a><a href="#/tiendas">Para tiendas</a></nav>
+      <nav aria-label="Información"><h2>Soporte</h2><a href="#/ayuda">Preguntas frecuentes</a><a href="#/contacto">Contacto</a><a href="#/privacidad">Privacidad</a></nav>
+    </div>
   </footer>
   <div id="notice" role="status" aria-live="polite"></div>
   <noscript>Activa JavaScript para explorar el catálogo y comparar tiendas.</noscript>

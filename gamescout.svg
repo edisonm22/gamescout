@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GameScout">
+  <rect width="64" height="64" rx="14" fill="#cbf35b"/>
+  <path fill="#15221c" d="M50 13H26L11 28v16l8 8h19l15-15V26H33l-7 8h15l-9 10H23l-4-4v-9l11-11h13z"/>
+  <path fill="#15221c" d="M48 20l7-7v7z"/>
+</svg>
