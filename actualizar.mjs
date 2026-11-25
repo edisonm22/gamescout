@@ -125,9 +125,17 @@ async function main() {
     if (!Number.isFinite(o.amount) || !Number.isFinite(o.regular) || o.amount<0 || o.regular<o.amount || !/^https:\/\//.test(o.url)) throw new Error('Oferta inválida: '+g.title)
   }
   const data = {checkedAt:stamp,exchange:{usdCop:rate,validFrom:trm[0].vigenciadesde.slice(0,10),validTo:trm[0].vigenciahasta.slice(0,10)},games}
+  const page = new URL('./index.html',import.meta.url)
+  const html = await readFile(page,'utf8')
+  const version = './catalogo.js?v='+stamp.replace(/[:.]/g,'-')
+  const marker = /("\.\/catalogo\.js"\s*:\s*")[^"]+(")/
+  if (!marker.test(html)) throw new Error('Falta el enlace de versión del catálogo en index.html')
+  const nextPage = new URL('./index.'+process.pid+'.tmp',import.meta.url)
   const temp = new URL('./catalogo.'+process.pid+'.tmp',import.meta.url)
   await writeFile(temp,'export const snapshot = '+JSON.stringify(data)+'\n')
+  await writeFile(nextPage,html.replace(marker,(_,start,end)=>start+version+end))
   await rename(temp,output)
+  await rename(nextPage,page)
   console.log(games.length,'juegos,',games.reduce((n,g)=>n+g.offers.length,0),'precios')
 }
 await main()
